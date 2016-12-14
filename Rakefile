@@ -21,7 +21,7 @@ rescue LoadError
   # no rspec available
 end
 
-def build(os, org="intelsdi", version=nil)
+def build(os, org="wen777", version=nil)
   raise "Error: missing operating system" unless os
   raise "Error: invalid operating system #{os}" unless File.exists? "#{os}/Dockerfile"
   if version
@@ -68,7 +68,7 @@ namespace :docker do
   desc "push containers to docker hub."
   task :push do
     containers.each do |os|
-      sh "docker push intelsdi/snap:#{os}"
+      sh "docker push wen777/snap:#{os}"
     end
   end
 end
