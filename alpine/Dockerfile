@@ -22,5 +22,10 @@ ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snapteld  /opt/snap/sbin/snaptel
 ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snaptel  /opt/snap/bin/snaptel
 COPY init_snap /usr/local/bin/init_snap
 COPY snapteld.conf /etc/snap/snapteld.conf
+COPY snap-daemon.json /etc/snap/snap-daemon.json
+COPY run.sh /usr/local/bin/run.sh
 
-CMD /usr/local/bin/init_snap && /opt/snap/sbin/snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o ''
+RUN apk add --update curl py-psutil && \
+    rm -rf /var/cache/apk/*
+
+CMD ["/usr/local/bin/run.sh"]

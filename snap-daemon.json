@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "schedule": {
+    "type": "simple",
+    "interval": "5s"
+  },
+  "workflow": {
+    "collect": {
+      "metrics": {
+        "/intel/docker/*": {},
+        "/intel/psutil/*": {},
+        "/intel/procfs/meminfo/*": {},
+        "/intel/procfs/disk/*": {}
+      },
+      "config": {
+        "/intel/procfs": {
+          "proc_path": "/proc"
+        }
+      },
+      "publish": [
+        {
+          "plugin_name": "influxdb",
+          "config": {
+            "host": "influxsrv",
+            "port": 8086,
+            "database": "snap",
+            "user": "admin",
+            "password": "admin",
+            "https": false,
+            "skip-verify": false
+          }
+        }
+      ]
+    }
+  }
+}
