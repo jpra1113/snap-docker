@@ -1,11 +1,14 @@
 #!/bin/sh
-/usr/local/bin/init_snap
+
+set -e
+set -u
+
 # Start Snap daemon
-/opt/snap/sbin/snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o '' &
+snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o '' &
 SNAP_PID=$(pidof snapteld)
 
 echo
-echo "Load plugins: docker, meminfo, pyustil, and influxdb."
+echo "[Process $SNAP_PID] Load plugins: docker, meminfo, pyustil, and influxdb."
 echo
 
 curl -sfL "http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest/linux/x86_64/snap-plugin-collector-meminfo" -o snap-plugin-collector-meminfo
@@ -16,15 +19,15 @@ curl -sfL "https://github.com/intelsdi-x/snap-plugin-collector-psutil/releases/d
 
 chmod 755 snap-plugin-*
 
-/opt/snap/bin/snaptel plugin load snap-plugin-collector-meminfo > /dev/null
-/opt/snap/bin/snaptel plugin load snap-plugin-publisher-influxdb > /dev/null
-/opt/snap/bin/snaptel plugin load snap-plugin-collector-docker > /dev/null
-/opt/snap/bin/snaptel plugin load snap-plugin-collector-disk > /dev/null
-/opt/snap/bin/snaptel plugin load snap-plugin-collector-psutil > /dev/null
+snaptel plugin load snap-plugin-collector-meminfo > /dev/null
+snaptel plugin load snap-plugin-publisher-influxdb > /dev/null
+snaptel plugin load snap-plugin-collector-docker > /dev/null
+snaptel plugin load snap-plugin-collector-disk > /dev/null
+snaptel plugin load snap-plugin-collector-psutil > /dev/null
 
 echo "Start Snap task."
 echo
-/opt/snap/bin/snaptel task create -t /etc/snap/snap-daemon.json
+snaptel task create -t /etc/snap/snap-daemon.json
 echo
 
 wait $SNAP_PID

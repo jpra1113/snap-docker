@@ -28,4 +28,4 @@ COPY run.sh /usr/local/bin/run.sh
 RUN apk add --update curl py-psutil && \
     rm -rf /var/cache/apk/*
 
-CMD ["/usr/local/bin/run.sh"]
+CMD /usr/local/bin/run.sh
