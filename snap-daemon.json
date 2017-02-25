@@ -24,8 +24,8 @@
             "host": "influxsrv",
             "port": 8086,
             "database": "snap",
-            "user": "admin",
-            "password": "admin",
+            "user": "root",
+            "password": "hyperpilot",
             "https": false,
             "skip-verify": false
           }
