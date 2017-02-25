@@ -1,7 +1,6 @@
 #!/bin/sh
 
-set -e
-set -u
+/usr/local/bin/init_snap
 
 # Start Snap daemon
 snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o '' &
@@ -13,7 +12,7 @@ echo
 
 curl -sfL "http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest/linux/x86_64/snap-plugin-collector-meminfo" -o snap-plugin-collector-meminfo
 curl -sfL "https://github.com/intelsdi-x/snap-plugin-publisher-influxdb/releases/download/16/snap-plugin-publisher-influxdb_linux_x86_64" -o snap-plugin-publisher-influxdb
-curl -sfL "https://github.com/adrianliaw/snap-plugin-collector-docker/releases/download/6-name/snap-plugin-collector-docker_linux_x86_64" -o snap-plugin-collector-docker
+curl -sfL "https://github.com/adrianliaw/snap-plugin-collector-docker/releases/download/5-name/snap-plugin-collector-docker_linux_x86_64" -o snap-plugin-collector-docker
 curl -sfL "https://github.com/intelsdi-x/snap-plugin-collector-disk/releases/download/4/snap-plugin-collector-disk_linux_x86_64" -o snap-plugin-collector-disk
 curl -sfL "https://github.com/intelsdi-x/snap-plugin-collector-psutil/releases/download/8/snap-plugin-collector-psutil_linux_x86_64" -o snap-plugin-collector-psutil
 
