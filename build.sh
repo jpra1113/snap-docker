@@ -5,7 +5,7 @@ set -u
 set -o pipefail
 
 os=$1
-org=${2:-"intelsdi"}
+org=${2:-"wen777"}
 
 cmd="docker build -t ${org}/snap:${os} \
   --build-arg BUILD_DATE=$(date +%Y-%m-%d)"
