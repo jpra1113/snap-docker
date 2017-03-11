@@ -5,6 +5,15 @@
 [![](https://images.microbadger.com/badges/image/intelsdi/snap.svg)](http://microbadger.com/images/intelsdi/snap)
 [![Build Status](https://travis-ci.org/intelsdi-x/snap-docker.svg?branch=master)](https://travis-ci.org/intelsdi-x/snap-docker)
 
+## NOTE
+
+For the configuration of snap-plugin-collector-goddd, must give the environment variable
+
+```
+docker run -e "GODDD_URL=http://goddd:8080" snap:alpine 
+```
+
+
 This repository contains snap installed on several linux operating system. 
 
 * Alpine 3.4 ([alpine/Dockerfile](https://github.com/intelsdi-x/snap-docker/blob/master/alpine/Dockerfile))

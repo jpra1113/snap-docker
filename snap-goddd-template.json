@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "schedule": {
+    "type": "simple",
+    "interval": "30s"
+  },
+  "workflow": {
+    "collect": {
+      "metrics": {
+        "/hyperpilot/goddd/*": {}
+      },
+      "config": {
+        "/hyperpilot/goddd": {
+          "endpoint": "{{ GODDD_URL }}"
+        }
+      },
+      "publish": [
+        {
+          "plugin_name": "influxdb",
+          "config": {
+            "host": "influxsrv",
+            "port": 8086,
+            "database": "snap",
+            "user": "root",
+            "password": "hyperpilot",
+            "https": false,
+            "skip-verify": false
+          }
+        }
+      ]
+    }
+  }
+}

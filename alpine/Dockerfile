@@ -21,11 +21,14 @@ EXPOSE 8181
 ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snapteld  /opt/snap/sbin/snapteld
 ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snaptel  /opt/snap/bin/snaptel
 COPY init_snap /usr/local/bin/init_snap
-COPY snapteld.conf /etc/snap/snapteld.conf
-COPY snap-daemon.json /etc/snap/snap-daemon.json
 COPY run.sh /usr/local/bin/run.sh
 
-RUN apk add --update curl py-psutil && \
+COPY snap-intel.json /etc/snap/snap-intel.json
+COPY snap-goddd-template.json /etc/snap/snap-goddd-template.json
+
+COPY snap-plugin-collector-goddd snap-plugin-collector-goddd
+
+RUN apk add --update curl py-psutil jq && \
     rm -rf /var/cache/apk/*
 
 CMD /usr/local/bin/run.sh
