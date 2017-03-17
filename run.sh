@@ -47,13 +47,9 @@ if [ "IS$GODDD_URL" != "IS"  ]; then
         exit 1
 fi
 
-if curl --fail -XGET "$GODDD_URL/booking/v1/cargos"; then
-        echo "Start Snap task."
-        echo
-        snaptel task create -t /etc/snap/snap-goddd.json
-        echo
-    else
-        exit 1
-fi;
+echo "Start Snap task."
+echo
+snaptel task create -t /etc/snap/snap-goddd.json
+echo
 
 wait $SNAP_PID
