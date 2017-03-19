@@ -2,7 +2,7 @@
   "version": 1,
   "schedule": {
     "type": "simple",
-    "interval": "30s"
+    "interval": "10s"
   },
   "workflow": {
     "collect": {
@@ -10,11 +10,14 @@
         "/intel/docker/*": {},
         "/intel/psutil/*": {},
         "/intel/procfs/meminfo/*": {},
-        "/intel/procfs/disk/*": {}
+        "/intel/procfs/cpu/*": {},
+        "/intel/linux/iostat/*": {},
+        "/intel/procfs/disk/*": {},
+        "/intel/procfs/load/*": {}
       },
       "config": {
         "/intel/procfs": {
-          "proc_path": "/proc"
+          "proc_path": "/proc_host"
         }
       },
       "publish": [
