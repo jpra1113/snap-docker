@@ -8,10 +8,8 @@
     "collect": {
       "metrics": {
         "/intel/docker/*": {},
-        "/intel/psutil/*": {},
         "/intel/procfs/meminfo/*": {},
         "/intel/procfs/cpu/*": {},
-        "/intel/linux/iostat/*": {},
         "/intel/procfs/disk/*": {},
         "/intel/procfs/load/*": {}
       },
