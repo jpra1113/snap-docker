@@ -2,7 +2,7 @@
   "version": 1,
   "schedule": {
     "type": "simple",
-    "interval": "30s"
+    "interval": "10s"
   },
   "workflow": {
     "collect": {
@@ -11,7 +11,7 @@
       },
       "config": {
         "/hyperpilot/goddd": {
-          "endpoint": "{{ GODDD_URL }}"
+          "endpoint": "http://goddd:8080"
         }
       },
       "publish": [
