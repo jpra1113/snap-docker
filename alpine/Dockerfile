@@ -22,13 +22,9 @@ ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snapteld  /opt/snap/sbin/snaptel
 ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snaptel  /opt/snap/bin/snaptel
 COPY init_snap /usr/local/bin/init_snap
 COPY run.sh /usr/local/bin/run.sh
+COPY snap_init.py snap_init.py
 
-COPY snap-intel.json /etc/snap/snap-intel.json
-COPY snap-goddd-template.json /etc/snap/snap-goddd-template.json
-
-COPY snap-plugin-collector-goddd snap-plugin-collector-goddd
-
-RUN apk add --update curl py-psutil jq && \
+RUN apk add --update curl py-psutil jq python python-dev py-pip build-base && \
     rm -rf /var/cache/apk/*
 
-CMD /usr/local/bin/run.sh
+ENTRYPOINT /usr/local/bin/run.sh
