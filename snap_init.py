@@ -142,6 +142,16 @@ def main():
     downloaded_tasks = download_urls(task_list)
     count = 0
     for task in downloaded_tasks:
+
+            # Replace snap tag value with the enviroment var
+            # XXX: This kind of thing will probably be done several times in the
+            # future, it'll be better to generalize with things like Jinja2
+            conf = json.load(open(task))
+            tag = conf["workflow"]["collect"].get("tags", {}).get("/intel", {})
+            if "nodename" in tag:
+                tag["nodename"] = tag["nodename"].format(**os.environ)
+            json.dump(conf, open(task, "w"))
+
             snaptel.run_task(task)
             count += 1
             # Snap might be running the task although it didn't exit correctly

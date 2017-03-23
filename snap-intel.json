@@ -22,6 +22,11 @@
           "procfs": "/proc_host"
         }
       },
+      "tags": {
+        "/intel": {
+          "nodename": "{NODE_NAME}"
+        }
+      },
       "publish": [
         {
           "plugin_name": "influxdb",
