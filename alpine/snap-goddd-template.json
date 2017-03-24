@@ -1,1 +1,33 @@
-../snap-goddd-template.json
+{
+  "version": 1,
+  "schedule": {
+    "type": "simple",
+    "interval": "10s"
+  },
+  "workflow": {
+    "collect": {
+      "metrics": {
+        "/hyperpilot/goddd/*": {}
+      },
+      "config": {
+        "/hyperpilot/goddd": {
+          "endpoint": "http://goddd.default:8080"
+        }
+      },
+      "publish": [
+        {
+          "plugin_name": "influxdb",
+          "config": {
+            "host": "influxsrv",
+            "port": 8086,
+            "database": "snap",
+            "user": "root",
+            "password": "hyperpilot",
+            "https": false,
+            "skip-verify": false
+          }
+        }
+      ]
+    }
+  }
+}
