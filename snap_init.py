@@ -12,6 +12,9 @@ from tempfile import TemporaryFile
 
 from optparse import OptionParser
 
+from jinja2 import Template
+
+
 class Snaptel(object):
     def get_running_tasks(self):
         out, err = self._run_command(["snaptel", "task", "list"])
@@ -143,14 +146,14 @@ def main():
     count = 0
     for task in downloaded_tasks:
 
-            # Replace snap tag value with the enviroment var
-            # XXX: This kind of thing will probably be done several times in the
-            # future, it'll be better to generalize with things like Jinja2
-            conf = json.load(open(task))
-            tag = conf["workflow"]["collect"].get("tags", {}).get("/intel", {})
-            if "nodename" in tag:
-                tag["nodename"] = tag["nodename"].format(**os.environ)
-            json.dump(conf, open(task, "w"))
+            with open(task, "r") as f:
+                # Double curly braces appears in json too often,
+                # so use <%= VAR => expression here instead
+                template = Template(f.read(),
+                                    variable_start_string="<%=",
+                                    variable_end_string="=>")
+            with open(task, "w") as f:
+                f.write(template.render(**os.environ))
 
             snaptel.run_task(task)
             count += 1
