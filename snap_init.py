@@ -95,14 +95,19 @@ class Snaptel(object):
                 print("Check output called received error: " + str(e))
                 return None, t.read()
 
-def download_urls(urls):
+def download_urls(urls, dest_folder=None):
     files = []
     for url in urls:
         local_path = url.split("/")[-1]
         print("Downloading file " + url + " to " + local_path)
         urllib.urlretrieve(url, local_path)
         os.chmod(local_path, 0755)
-        files.append(local_path)
+        if dest_folder is not None:
+            dest_path = os.path.join(dest_folder, local_path)
+            os.rename(local_path, dest_path)
+            files.append(dest_path)
+        else:
+            files.append(local_path)
     return files
 
 def main():
@@ -132,40 +137,33 @@ def main():
 
     snaptel = Snaptel()
 
+    plugins_directory = None
+    if "pluginsPath" in j:
+        plugins_directory = j["pluginsPath"]
+        if not os.path.exists(plugins_directory):
+            os.makedirs(plugins_directory)
+
+    tasks_directory = None
+    if "tasksPath" in j:
+        tasks_directory = j["tasksPath"]
+        if not os.path.exists(tasks_directory):
+            os.makedirs(tasks_directory)
+
     plugin_list = j["plugins"]
-    print("Loading plugins...")
-    for plugin in plugin_list.keys():
-        plugin_url = plugin_list[plugin]
-        plugin_path = download_urls([plugin_url])[0]
-        if not snaptel.load_plugin(plugin, plugin_path):
-            print("Unable to load plugin " + plugin + ", exiting...")
-            sys.exit(1)
-
+    plugin_paths = download_urls(plugin_list.values(), plugins_directory)
     task_list = j["tasks"]
-    downloaded_tasks = download_urls(task_list)
-    count = 0
+    downloaded_tasks = download_urls(task_list, tasks_directory)
     for task in downloaded_tasks:
-
-            with open(task, "r") as f:
-                # Double curly braces appears in json too often,
-                # so use <%= VAR => expression here instead
-                template = Template(f.read(),
-                                    variable_start_string="<%=",
-                                    variable_end_string="=>")
+        with open(task, "r") as f:
+            # Double curly braces appears in json too often,
+            # so use <%= VAR => expression here instead
+            template = Template(f.read(),
+                                variable_start_string="<%=",
+                                variable_end_string="=>")
             with open(task, "w") as f:
                 f.write(template.render(**os.environ))
 
-            snaptel.run_task(task)
-            count += 1
-            # Snap might be running the task although it didn't exit correctly
-            running_tasks = snaptel.get_running_tasks()
-            if len(running_tasks) != count:
-                print("Wasn't able to find task in running tasks '" + str(running_tasks) + "', exiting...")
-                sys.exit(1)
-            else:
-                print("Task '" + task + "' started")
-
-    print("Snap init finished")
+    print("Snap plugins and tasks prepared")
 
 if __name__ == '__main__':
     main()
