@@ -12,6 +12,9 @@ from tempfile import TemporaryFile
 
 from optparse import OptionParser
 
+from jinja2 import Template
+
+
 class Snaptel(object):
     def get_running_tasks(self):
         out, err = self._run_command(["snaptel", "task", "list"])
@@ -142,6 +145,16 @@ def main():
     downloaded_tasks = download_urls(task_list)
     count = 0
     for task in downloaded_tasks:
+
+            with open(task, "r") as f:
+                # Double curly braces appears in json too often,
+                # so use <%= VAR => expression here instead
+                template = Template(f.read(),
+                                    variable_start_string="<%=",
+                                    variable_end_string="=>")
+            with open(task, "w") as f:
+                f.write(template.render(**os.environ))
+
             snaptel.run_task(task)
             count += 1
             # Snap might be running the task although it didn't exit correctly

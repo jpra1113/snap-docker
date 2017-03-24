@@ -28,4 +28,6 @@ COPY snap_init.py snap_init.py
 RUN apk add --update curl py-psutil jq python python-dev py-pip build-base && \
     rm -rf /var/cache/apk/*
 
+RUN pip install Jinja2
+
 ENTRYPOINT /usr/local/bin/run.sh
