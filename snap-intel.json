@@ -9,13 +9,11 @@
       "metrics": {
         "/intel/docker/*": {},
         "/intel/procfs/meminfo/*": {},
-        "/intel/procfs/disk/*": {}
+        "/intel/procfs/disk/*": {},
+        "/intel/procfs/cpu/*": {}
       },
       "config": {
-        "/intel/procfs/disk": {
-          "proc_path": "/proc_host"
-        },
-        "/intel/procfs/meminfo": {
+        "/intel/procfs": {
           "proc_path": "/proc_host"
         },
         "/intel/docker": {
@@ -24,7 +22,7 @@
       },
       "tags": {
         "/intel": {
-          "nodename": "{NODE_NAME}"
+          "nodename": "<%= NODE_NAME =>"
         }
       },
       "publish": [
