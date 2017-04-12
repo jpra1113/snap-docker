@@ -14,6 +14,16 @@
           "endpoint": "http://goddd.default:8080"
         }
       },
+      "process": [
+	{
+          "plugin_name": "snap-plugin-processor-agent",
+          "config": {
+	    "qos-data-store-url": "http://qos-data-store:7781",
+            "sla-goal": 500,
+            "metric-type": "quantile_90"
+	  }
+        }
+      ],
       "publish": [
         {
           "plugin_name": "influxdb",
