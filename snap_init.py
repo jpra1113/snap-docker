@@ -7,15 +7,13 @@ import sys
 import urllib
 
 from subprocess import check_output, CalledProcessError
-
 from tempfile import TemporaryFile
-
 from optparse import OptionParser
-
 from jinja2 import Template
 
 
 class Snaptel(object):
+
     def get_running_tasks(self):
         out, err = self._run_command(["snaptel", "task", "list"])
         if err is not None:
@@ -54,28 +52,31 @@ class Snaptel(object):
             else:
                 retries -= 1
                 time.sleep(5)
-        print("Unable to wait for plugin '" + plugin + "' to be loaded. exiting...")
+        print("Unable to wait for plugin '" +
+              plugin + "' to be loaded. exiting...")
         sys.exit(1)
 
     def load_plugin(self, plugin, plugin_path):
         print("Loading plugin " + plugin + " from " + plugin_path)
         retries = 5
         while retries > 0:
-            out, err = self._run_command(["snaptel", "plugin", "load", plugin_path])
+            out, err = self._run_command(
+                ["snaptel", "plugin", "load", plugin_path])
             if err is not None:
-               print("Unable to load plugin " + plugin + ", error: " + err)
-               retries -= 1
+                print("Unable to load plugin " + plugin + ", error: " + err)
+                retries -= 1
             else:
-               self.wait_until_plugin_loaded(plugin)
-               print("Plugin " + plugin_path + " loaded successfully")
-               return True
+                self.wait_until_plugin_loaded(plugin)
+                print("Plugin " + plugin_path + " loaded successfully")
+                return True
             print("Retrying in 5 seconds")
             time.sleep(5)
         return False
 
     def run_task(self, task_path):
         print("Running task " + task_path)
-        out, err = self._run_command(["snaptel", "task", "create", "-t", task_path])
+        out, err = self._run_command(
+            ["snaptel", "task", "create", "-t", task_path])
         if err is not None:
             print("Unable to run task " + task_path + ", error: " + err)
             return False
@@ -89,11 +90,13 @@ class Snaptel(object):
                 out = check_output(args, stderr=t)
                 return out, None
             except OSError as e:
-                print("Unexpected OS error running command '" + str(args) + "': " + str(e))
+                print("Unexpected OS error running command '" +
+                      str(args) + "': " + str(e))
                 sys.exit(1)
             except CalledProcessError as e:
                 print("Check output called received error: " + str(e))
                 return None, t.read()
+
 
 def download_urls(urls, dest_folder=None):
     files = []
@@ -109,6 +112,7 @@ def download_urls(urls, dest_folder=None):
         else:
             files.append(local_path)
     return files
+
 
 def main():
     # Initialize
@@ -150,10 +154,10 @@ def main():
             os.makedirs(tasks_directory)
 
     plugin_list = j["plugins"]
-    plugin_paths = download_urls(plugin_list.values(), plugins_directory)
+    plugin_path_list = download_urls(plugin_list.values(), plugins_directory)
     task_list = j["tasks"]
-    downloaded_tasks = download_urls(task_list, tasks_directory)
-    for task in downloaded_tasks:
+    task_path_list = download_urls(task_list, tasks_directory)
+    for task in task_path_list:
         with open(task, "r") as f:
             # Double curly braces appears in json too often,
             # so use <%= VAR => expression here instead
@@ -162,8 +166,25 @@ def main():
                                 variable_end_string="=>")
             with open(task, "w") as f:
                 f.write(template.render(**os.environ))
-
     print("Snap plugins and tasks prepared")
+   
+    print("Loading plugins...")
+    for plugin, plugin_path in zip(plugin_list, plugin_path_list):
+        success = snaptel.load_plugin(plugin, plugin_path)
+        if not success:
+            print("Timeout when loading plugins")
+            sys.exit(1)
+    print("Plugins are loaded\n {}".format(plugin_path))
+
+    print("Creating tasks...")
+    for task_path in task_path_list:
+        success = snaptel.run_task(task_path)
+        if not success:
+            sys.exit(1)
+    print("Tasks created\n {}".format(task_path_list))
+    
+    # Success
+    sys.exit(0)
 
 if __name__ == '__main__':
     main()
