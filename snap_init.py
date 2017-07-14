@@ -31,6 +31,7 @@ class Snaptel(object):
 
     def get_loaded_plugins(self):
         out, err = self._run_command(["snaptel", "plugin", "list"])
+        print(out)
         if err is not None:
             print("Unable to get loaded plugins, error: " + err)
             sys.exit(1)
@@ -43,11 +44,11 @@ class Snaptel(object):
                     loaded_plugins.append(line.split(" ")[0])
             return loaded_plugins
 
-    def wait_until_plugin_loaded(self, plugin):
+    def wait_until_plugin_loaded(self, plugin, curr_num_plugin):
         retries = 5
         while retries > 0:
             loaded_plugins = self.get_loaded_plugins()
-            if plugin in loaded_plugins:
+            if len(loaded_plugins) == curr_num_plugin + 1:
                 return
             else:
                 retries -= 1
@@ -58,7 +59,8 @@ class Snaptel(object):
 
     def load_plugin(self, plugin, plugin_path):
         print("Loading plugin " + plugin + " from " + plugin_path)
-        retries = 5
+        curr_num_plugin = len(self.get_loaded_plugins())
+        retries = 20
         while retries > 0:
             out, err = self._run_command(
                 ["snaptel", "plugin", "load", plugin_path])
@@ -66,7 +68,7 @@ class Snaptel(object):
                 print("Unable to load plugin " + plugin + ", error: " + err)
                 retries -= 1
             else:
-                self.wait_until_plugin_loaded(plugin)
+                self.wait_until_plugin_loaded(plugin, curr_num_plugin)
                 print("Plugin " + plugin_path + " loaded successfully")
                 return True
             print("Retrying in 5 seconds")
@@ -167,22 +169,22 @@ def main():
             with open(task, "w") as f:
                 f.write(template.render(**os.environ))
     print("Snap plugins and tasks prepared")
-   
-    print("Loading plugins...")
+
+    print("Loading plugins...", plugin_list)
     for plugin, plugin_path in zip(plugin_list, plugin_path_list):
         success = snaptel.load_plugin(plugin, plugin_path)
         if not success:
             print("Timeout when loading plugins")
             sys.exit(1)
-    print("Plugins are loaded\n {}".format(plugin_path))
+    print("Plugins are loaded\n")
 
-    print("Creating tasks...")
+    print("Creating tasks...", task_path_list)
     for task_path in task_path_list:
         success = snaptel.run_task(task_path)
         if not success:
             sys.exit(1)
-    print("Tasks created\n {}".format(task_path_list))
-    
+    print("Tasks created\n")
+
     # Success
     sys.exit(0)
 

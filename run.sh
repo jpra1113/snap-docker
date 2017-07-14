@@ -16,11 +16,9 @@ echo "exit status: $exit_status"
 # Check exit status
 if [ $exit_status -ne "0" ]
 	then
-	exit 1 # Unable to load plugin OR create tasks after trials. Let k8s to restart this pod
+	exit 1 # Unable to load plugin OR create tasks after trialsche. Let k8s to restart this pod
 fi
 echo "Plugins are sucessfully loaded"
 echo "Tasks are sucessfully created"
 
-ps -l
-echo $(pidof snapteld)
 wait $(pidof snapteld)
