@@ -30,4 +30,4 @@ RUN apk add --update curl py-psutil jq python python-dev py-pip build-base && \
 
 RUN pip install Jinja2
 
-ENTRYPOINT /usr/local/bin/run.sh
+ENTRYPOINT ["/usr/local/bin/run.sh"]
