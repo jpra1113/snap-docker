@@ -5,6 +5,12 @@ import time
 import os
 import sys
 import urllib
+import urllib2
+import ssl
+
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
 
 from subprocess import check_output, CalledProcessError
 from tempfile import TemporaryFile
@@ -105,7 +111,7 @@ def download_urls(urls, dest_folder=None):
     for url in urls:
         local_path = url.split("/")[-1]
         print("Downloading file " + url + " to " + local_path)
-        urllib.urlretrieve(url, local_path)
+        urllib.urlretrieve(url, local_path, context=ctx)
         os.chmod(local_path, 0755)
         if dest_folder is not None:
             dest_path = os.path.join(dest_folder, local_path)
