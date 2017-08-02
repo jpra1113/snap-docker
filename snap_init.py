@@ -112,7 +112,7 @@ def download_urls(urls, dest_folder=None):
         local_path = url.split("/")[-1]
         print("Downloading file " + url + " to " + local_path)
         urllib.urlretrieve(url, local_path, context=ctx)
-        os.chmod(local_path, 0755)
+        os.chmod(local_path, 0o755)
         if dest_folder is not None:
             dest_path = os.path.join(dest_folder, local_path)
             os.rename(local_path, dest_path)
