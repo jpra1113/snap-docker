@@ -17,6 +17,19 @@ from tempfile import TemporaryFile
 from optparse import OptionParser
 from jinja2 import Template
 
+from kubernetes import client, config
+import errno
+
+def get_deployment_id():
+    """Call kubernetes api container to retrieve the deployment id"""
+    try:
+        config.load_incluster_config()
+        nodes = client.CoreV1Api().list_node()
+        if len(nodes.items) > 0:
+            return nodes.items[0].metadata.labels.get("hyperpilot/deployment", "")
+    except config.ConfigException:
+        print "Failed to load configuration. This container cannot run outside k8s."
+        sys.exit(errno.EPERM)
 
 class Snaptel(object):
 
@@ -143,6 +156,8 @@ def main():
     config_path = opts.config
     if "://" in opts.config:
         config_path = download_urls([opts.config])[0]
+
+    os.environ["DEPLOYMENT_ID"] = get_deployment_id()
 
     with open(config_path) as json_data:
         j = json.load(json_data)

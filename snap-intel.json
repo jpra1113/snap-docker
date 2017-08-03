@@ -22,7 +22,8 @@
       },
       "tags": {
         "/intel": {
-          "nodename": "<%= NODE_NAME =>"
+          "nodename": "<%= NODE_NAME =>",
+          "deploymentId": "<%= DEPLOYMENT_ID =>"
         }
       },
       "publish": [

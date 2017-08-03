@@ -1,0 +1,15 @@
+certifi==2017.7.27.1
+httplib2==0.10.3
+ipaddress==1.0.18
+Jinja2==2.9.6
+kubernetes==2.0.0
+MarkupSafe==1.0
+oauth2client==4.1.2
+pyasn1==0.3.1
+pyasn1-modules==0.0.10
+python-dateutil==2.6.1
+PyYAML==3.12
+rsa==3.4.2
+six==1.10.0
+urllib3==1.22
+websocket-client==0.44.0

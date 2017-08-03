@@ -24,10 +24,10 @@ COPY init_snap /usr/local/bin/init_snap
 COPY snapteld.conf /etc/snap/snapteld.conf
 COPY run.sh /usr/local/bin/run.sh
 COPY snap_init.py snap_init.py
+COPY requirements.txt requirements.txt
 
 RUN apk add --update curl py-psutil jq python python-dev py-pip build-base && \
-    rm -rf /var/cache/apk/*
-
-RUN pip install Jinja2
+    rm -rf /var/cache/apk/* && \
+    pip install -r requirements.txt
 
 ENTRYPOINT ["/usr/local/bin/run.sh"]
