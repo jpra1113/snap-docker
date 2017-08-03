@@ -20,6 +20,7 @@ from jinja2 import Template
 from kubernetes import client, config
 import errno
 
+
 def get_deployment_id():
     """Call kubernetes api container to retrieve the deployment id"""
     try:
@@ -30,6 +31,7 @@ def get_deployment_id():
     except config.ConfigException:
         print "Failed to load configuration. This container cannot run outside k8s."
         sys.exit(errno.EPERM)
+
 
 class Snaptel(object):
 
@@ -208,6 +210,7 @@ def main():
 
     # Success
     sys.exit(0)
+
 
 if __name__ == '__main__':
     main()
