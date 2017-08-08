@@ -8,10 +8,6 @@ import urllib
 import urllib2
 import ssl
 
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-
 from subprocess import check_output, CalledProcessError
 from tempfile import TemporaryFile
 from optparse import OptionParser
@@ -20,6 +16,9 @@ from jinja2 import Template
 from kubernetes import client, config
 import errno
 
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
 
 def get_deployment_id():
     """Call kubernetes api container to retrieve the deployment id"""
