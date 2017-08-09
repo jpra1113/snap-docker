@@ -7,6 +7,7 @@ import sys
 import urllib
 import urllib2
 import ssl
+import errno
 
 from subprocess import check_output, CalledProcessError
 from tempfile import TemporaryFile
@@ -14,11 +15,27 @@ from optparse import OptionParser
 from jinja2 import Template
 
 from kubernetes import client, config
-import errno
+
+from influxdb import InfluxDBClient, exceptions as influxdbExceptions
 
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
+
+
+def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPassword='root', dbName='default'):
+    """Initialize db"""
+    client = InfluxDBClient(dbHost, dbPort, dbName, dbUser, dbPassword)
+    dbList = list(map(lambda x: x['name'], client.get_list_database()))
+    if dbName not in dbList:
+        try:
+            client.create_database(dbName)
+        except influxdbExceptions.InfluxDBClientError as e:
+            print "[Warn] Failed to create db {}\nException: {}".format(dbName, e)
+    else:
+        print "List of existing DB"
+        print dbList
+
 
 def get_deployment_id():
     """Call kubernetes api container to retrieve the deployment id"""
@@ -190,6 +207,25 @@ def main():
                                 variable_end_string="=>")
             with open(task, "w") as f:
                 f.write(template.render(**os.environ))
+        # Load Data from JSON file
+        # Configure Influxdb
+        with open(task, "r") as f:
+            j = json.load(f)
+            if 'workflow' in j and 'collect'in j['workflow']:
+                publish_obj = j['workflow']['collect']['publish']
+                if not publish_obj:
+                    continue
+                for i in publish_obj:
+                    if i['plugin_name'] != 'influxdb':
+                        continue
+                    configObj = i['config']
+                    # NOTE Ignore https case
+                    createInfluxdbDataBase(configObj['host'],
+                            configObj['port'],
+                            configObj['user'],
+                            configObj['password'],
+                            configObj['database'])
+
     print("Snap plugins and tasks prepared")
 
     print("Loading plugins...", plugin_list)
