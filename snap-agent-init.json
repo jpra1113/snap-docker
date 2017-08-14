@@ -1,0 +1,18 @@
+{
+  "plugins": {
+    "meminfo": "http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-meminfo/latest/linux/x86_64/snap-plugin-collector-meminfo",
+    "influxdb": "https://github.com/intelsdi-x/snap-plugin-publisher-influxdb/releases/download/25/snap-plugin-publisher-influxdb_linux_x86_64",
+    "docker": "http://hyperpilot-snap-collectors.s3.amazonaws.com/snap-plugin-collector-docker",
+    "disk": "https://github.com/intelsdi-x/snap-plugin-collector-disk/releases/download/4/snap-plugin-collector-disk_linux_x86_64",
+    "cpu": "https://github.com/intelsdi-x/snap-plugin-collector-cpu/releases/download/6/snap-plugin-collector-cpu_linux_x86_64",
+    "perfevents": "https://github.com/intelsdi-x/snap-plugin-collector-perfevents/releases/download/9/snap-plugin-collector-perfevents_linux_x86_64"
+  },
+  "tasks": [
+    "https://s3.amazonaws.com/hyperpilot-snap-collectors/snap-proc-1.json",
+    "https://s3.amazonaws.com/hyperpilot-snap-collectors/snap-proc-2.json",
+    "https://s3.amazonaws.com/hyperpilot-snap-collectors/snap-docker.json",
+    "https://s3.amazonaws.com/hyperpilot-snap-collectors/snap-perfevents.json"
+  ],
+  "pluginsPath": "/opt/snap/plugins",
+  "tasksPath": "/opt/snap/tasks"
+}

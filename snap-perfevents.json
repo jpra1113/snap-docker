@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "schedule": {
+    "type": "simple",
+    "interval": "10s"
+  },
+  "workflow": {
+    "collect": {
+      "metrics": {
+        "/intel/linux/perfevents/*": {}
+      },
+      "config": {
+      },
+      "tags": {
+        "/intel": {
+          "nodename": "<%= NODE_NAME =>",
+          "deploymentId": "<%= DEPLOYMENT_ID =>"
+        }
+      },
+      "publish": [
+        {
+          "plugin_name": "influxdb",
+          "config": {
+            "host": "elb-influxdb-58698480.us-east-1.elb.amazonaws.com",
+            "port": 8086,
+            "database": "<%= DEPLOYMENT_ID =>",
+            "user": "root",
+            "password": "default",
+            "https": false,
+            "skip-verify": false
+          }
+        }
+      ]
+    }
+  }
+}
