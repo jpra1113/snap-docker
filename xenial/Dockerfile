@@ -22,4 +22,17 @@ ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snaptel  /opt/snap/bin/snaptel
 COPY init_snap /usr/local/bin/init_snap
 COPY snapteld.conf /etc/snap/snapteld.conf
 
-CMD /usr/local/bin/init_snap && /opt/snap/sbin/snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o ''
+COPY run.sh /usr/local/bin/run.sh
+COPY snap_init.py snap_init.py
+COPY requirements.txt requirements.txt
+
+# To collect perf_events, set kernel.perf_event_paranoid to 0
+# sysctl -w kernel.perf_event_paranoid=0
+RUN apt-get update > /dev/null && \
+    apt-get install -y curl gcc python-dev python-pip \
+        jq python python-dev build-essential \
+        linux-tools-common linux-tools-generic && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install -r requirements.txt && mkdir -p /usr/host
+
+ENTRYPOINT ["/usr/local/bin/run.sh"]

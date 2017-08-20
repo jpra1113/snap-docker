@@ -1,4 +1,9 @@
 #!/bin/sh
+
+# To install perf tool on Ubuntu 16.04
+echo "Install perf tool ..."
+apt-get update > /dev/null && apt-get install -y linux-tools-`uname -r`
+
 /usr/local/bin/init_snap
 
 echo "args: $@"

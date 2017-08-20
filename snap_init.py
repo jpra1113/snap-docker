@@ -41,7 +41,7 @@ def get_deployment_id():
     """Call kubernetes api container to retrieve the deployment id"""
     try:
         config.load_incluster_config()
-        nodes = client.CoreV1Api().list_node()
+        nodes = client.CoreV1Api().list_node(watch=False)
         if len(nodes.items) > 0:
             return nodes.items[0].metadata.labels.get("hyperpilot/deployment", "")
     except config.ConfigException:

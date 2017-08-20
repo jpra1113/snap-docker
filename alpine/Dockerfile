@@ -28,6 +28,6 @@ COPY requirements.txt requirements.txt
 
 RUN apk add --update curl py-psutil jq python python-dev py-pip build-base && \
     rm -rf /var/cache/apk/* && \
-    pip install -r requirements.txt
+    pip install -r requirements.txt && mkdir -p /usr/host
 
 ENTRYPOINT ["/usr/local/bin/run.sh"]
