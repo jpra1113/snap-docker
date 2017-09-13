@@ -37,6 +37,19 @@ def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPas
         print dbList
 
 
+def create_publish_influxdb(publish_obj):
+    for i in publish_obj:
+        if i['plugin_name'] != 'influxdb':
+            continue
+        configObj = i['config']
+        # NOTE Ignore https case
+        createInfluxdbDataBase(configObj['host'],
+                               configObj['port'],
+                               configObj['user'],
+                               configObj['password'],
+                               configObj['database'])
+
+
 def get_deployment_id():
     """Call kubernetes api container to retrieve the deployment id"""
     try:
@@ -212,19 +225,13 @@ def main():
         with open(task, "r") as f:
             j = json.load(f)
             if 'workflow' in j and 'collect'in j['workflow']:
-                publish_obj = j['workflow']['collect']['publish']
-                if not publish_obj:
-                    continue
-                for i in publish_obj:
-                    if i['plugin_name'] != 'influxdb':
-                        continue
-                    configObj = i['config']
-                    # NOTE Ignore https case
-                    createInfluxdbDataBase(configObj['host'],
-                            configObj['port'],
-                            configObj['user'],
-                            configObj['password'],
-                            configObj['database'])
+                if 'publish' in j['workflow']['collect']:
+                    create_publish_influxdb(
+                        j['workflow']['collect']['publish'])
+                if 'process' in j['workflow']['collect']:
+                    if 'publish' in j['workflow']['collect']['process']:
+                        create_publish_influxdb(
+                            j['workflow']['collect']['process']['publish'])
 
     print("Snap plugins and tasks prepared")
 
