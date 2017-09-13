@@ -230,8 +230,8 @@ def main():
                         j['workflow']['collect']['publish'])
                 if 'process' in j['workflow']['collect']:
                     if 'publish' in j['workflow']['collect']['process']:
-                    create_publish_influxdb(
-                        j['workflow']['collect']['process']['publish'])
+                        create_publish_influxdb(
+                            j['workflow']['collect']['process']['publish'])
 
     print("Snap plugins and tasks prepared")
 
