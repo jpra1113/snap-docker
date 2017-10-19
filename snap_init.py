@@ -207,10 +207,19 @@ def main():
         if not os.path.exists(tasks_directory):
             os.makedirs(tasks_directory)
 
+    if "configsPath" in j:
+        configs_directory = j["configsPath"]
+        if not os.path.exists(configs_directory):
+            os.makedirs(configs_directory)
+
     plugin_list = j["plugins"]
     plugin_path_list = download_urls(plugin_list.values(), plugins_directory)
     task_list = j["tasks"]
     task_path_list = download_urls(task_list, tasks_directory)
+    configs_list = j["configs"]
+    if configs_list:
+        download_urls(configs_list, configs_directory)
+
     for task in task_path_list:
         with open(task, "r") as f:
             # Double curly braces appears in json too often,
