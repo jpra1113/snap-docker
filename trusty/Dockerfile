@@ -5,8 +5,9 @@ ARG SNAP_VERSION=latest
 
 ENV SNAP_VERSION=${SNAP_VERSION}
 ENV SNAP_TRUST_LEVEL=0
-ENV SNAP_LOG_LEVEL=1
+ENV SNAP_LOG_LEVEL=2
 ENV CI_URL=https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io
+ENV SNAP_URL="http://127.0.0.1:8181"
 
 LABEL vendor="Intelsdi-X" \
       name="Snap Ubuntu 14.04" \
@@ -22,4 +23,11 @@ ADD ${CI_URL}/snap/${SNAP_VERSION}/linux/x86_64/snaptel  /opt/snap/bin/snaptel
 COPY init_snap /usr/local/bin/init_snap
 COPY snapteld.conf /etc/snap/snapteld.conf
 
-CMD /usr/local/bin/init_snap && /opt/snap/sbin/snapteld -t ${SNAP_TRUST_LEVEL} -l ${SNAP_LOG_LEVEL} -o ''
+COPY run.sh /usr/local/bin/run.sh
+COPY snap_init.py snap_init.py
+COPY requirements.txt requirements.txt
+
+RUN apt-get update && apt-get install -y curl jq python python-dev python-pip python-openssl && \
+    pip install -r requirements.txt && mkdir -p /usr/host
+
+ENTRYPOINT ["/usr/local/bin/run.sh"]
