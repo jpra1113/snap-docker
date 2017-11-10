@@ -216,8 +216,8 @@ def main():
     plugin_path_list = download_urls(plugin_list.values(), plugins_directory)
     task_list = j["tasks"]
     task_path_list = download_urls(task_list, tasks_directory)
-    configs_list = j["configs"]
-    if configs_list:
+    if "configs" in j:
+        configs_list = j["configs"]
         download_urls(configs_list, configs_directory)
 
     for task in task_path_list:
