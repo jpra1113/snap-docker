@@ -27,7 +27,7 @@ COPY run.sh /usr/local/bin/run.sh
 COPY snap_init.py snap_init.py
 COPY requirements.txt requirements.txt
 
-RUN apt-get update && apt-get install -y curl jq python python-dev python-pip python-openssl && \
+RUN apt-get update && apt-get install -y curl jq python python-dev python-pip python-openssl sysstat && \
     pip install -r requirements.txt && mkdir -p /usr/host
 
 ENTRYPOINT ["/usr/local/bin/run.sh"]

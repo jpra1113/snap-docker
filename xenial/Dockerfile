@@ -5,7 +5,7 @@ ARG SNAP_VERSION=latest
 
 ENV SNAP_VERSION=${SNAP_VERSION}
 ENV SNAP_TRUST_LEVEL=0
-ENV SNAP_LOG_LEVEL=1
+ENV SNAP_LOG_LEVEL=3
 ENV CI_URL=https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io
 
 LABEL vendor="Intelsdi-X" \
@@ -31,7 +31,7 @@ COPY requirements.txt requirements.txt
 RUN apt-get update > /dev/null && \
     apt-get install -y curl gcc python-dev python-pip \
         jq python python-dev build-essential \
-        linux-tools-common linux-tools-generic && \
+        linux-tools-common linux-tools-generic sysstat && \
     rm -rf /var/lib/apt/lists/* && \
     pip install -r requirements.txt && mkdir -p /usr/host
 
