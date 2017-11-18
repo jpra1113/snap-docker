@@ -8,8 +8,8 @@ import urllib
 import urllib2
 import ssl
 import errno
+import subprocess
 
-from subprocess import check_output, CalledProcessError
 from tempfile import TemporaryFile
 from optparse import OptionParser
 from jinja2 import Template
@@ -63,7 +63,6 @@ def get_deployment_id():
 
 
 class Snaptel(object):
-
     def get_running_tasks(self):
         out, err = self._run_command(["snaptel", "task", "list"])
         if err is not None:
@@ -137,18 +136,14 @@ class Snaptel(object):
 
     # Returns either output, or error message in a tuple
     def _run_command(self, args):
-        with TemporaryFile() as t:
-            try:
-                out = check_output(args, stderr=t)
-                return out, None
-            except OSError as e:
-                print("Unexpected OS error running command '" +
-                      str(args) + "': " + str(e))
-                sys.exit(1)
-            except CalledProcessError as e:
-                print("Check output called received error: " + str(e))
-                return None, t.read()
-
+        process = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # wait for the process to terminate
+        out, err = process.communicate()
+        errcode = process.returncode
+        if errcode != 0:
+            return out, err
+        else:
+            return out, None
 
 def download_urls(urls, dest_folder=None):
     files = []

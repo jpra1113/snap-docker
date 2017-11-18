@@ -5,7 +5,7 @@ ARG SNAP_VERSION=latest
 
 ENV SNAP_VERSION=${SNAP_VERSION}
 ENV SNAP_TRUST_LEVEL=0
-ENV SNAP_LOG_LEVEL=3
+ENV SNAP_LOG_LEVEL=1
 ENV CI_URL=https://s3-us-west-2.amazonaws.com/snap.ci.snap-telemetry.io
 
 LABEL vendor="Intelsdi-X" \
