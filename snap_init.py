@@ -62,8 +62,8 @@ def get_deployment_id():
         sys.exit(errno.EPERM)
 
 
-def get_incluster_pod_endpoints(podName, namespaces='default'):
-    """Call kubernetes api service to get goddd cluster ip"""
+def get_service_endpoints(podName, namespaces='default'):
+    """Call kubernetes api service to get service cluster ip"""
     try:
         config.load_incluster_config()
         pod_service = client.CoreV1Api().read_namespaced_service(podName, namespaces)
@@ -177,23 +177,6 @@ def download_urls(urls, dest_folder=None):
     return files
 
 
-def replace_goddd_endpoints(tasks_path):
-    goddd_pod_name = 'goddd'
-    goddd_namespace = 'default'
-    for task in tasks_path:
-        with open(task, "r") as f:
-            j = json.load(f)
-            if 'workflow' in j and 'collect'in j['workflow']:
-                if 'config' in j['workflow']['collect']:
-                    if '/hyperpilot/goddd' in j['workflow']['collect']['config']:
-                        endpoint = get_incluster_pod_endpoints(
-                            goddd_pod_name, goddd_namespace)
-                        config_obj = j['workflow']['collect']['config']
-                        config_obj['/hyperpilot/goddd']['endpoint'] = endpoint
-                        with open(task, 'w') as f:
-                            json.dump(j, f, indent=4)
-
-
 def main():
     # Initialize
     parser = OptionParser(usage="snap_init [options]")
@@ -248,9 +231,6 @@ def main():
         configs_list = j["configs"]
         download_urls(configs_list, configs_directory)
 
-    # replace endpoints
-    replace_goddd_endpoints(task_path_list)
-
     for task in task_path_list:
         with open(task, "r") as f:
             # Double curly braces appears in json too often,
@@ -264,14 +244,18 @@ def main():
         # Configure Influxdb
         with open(task, "r") as f:
             j = json.load(f)
-            if 'workflow' in j and 'collect'in j['workflow']:
-                if 'publish' in j['workflow']['collect']:
-                    create_publish_influxdb(
-                        j['workflow']['collect']['publish'])
-                if 'process' in j['workflow']['collect']:
-                    if 'publish' in j['workflow']['collect']['process']:
-                        create_publish_influxdb(
-                            j['workflow']['collect']['process']['publish'])
+            if '/hyperpilot/goddd' in j.get("workflow", {}).get("collect", {}).get("config", {}):
+                endpoint = get_service_endpoints("goddd", "default")
+                config_obj = j['workflow']['collect']['config']
+                config_obj['/hyperpilot/goddd']['endpoint'] = endpoint
+                with open(task, 'w') as f:
+                    json.dump(j, f, indent=4)
+            if 'publish' in j.get("workflow", {}).get("collect", {}):
+                create_publish_influxdb(
+                    j['workflow']['collect']['publish'])
+            for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
+                if 'publish' in process_obj:
+                    create_publish_influxdb(process_obj['publish'])
 
     print("Snap plugins and tasks prepared")
 
