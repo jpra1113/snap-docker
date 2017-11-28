@@ -62,6 +62,20 @@ def get_deployment_id():
         sys.exit(errno.EPERM)
 
 
+def get_incluster_pod_endpoints(podName, namespaces='default'):
+    """Call kubernetes api service to get goddd cluster ip"""
+    try:
+        config.load_incluster_config()
+        pod_service = client.CoreV1Api().read_namespaced_service(podName, namespaces)
+        cluster_ip = pod_service.spec.cluster_ip
+        port = pod_service.spec.ports[0].port
+        print(cluster_ip)
+        return "http://%s:%s" % (cluster_ip, port)
+    except config.ConfigException:
+        print "Failed to load configuration. This container cannot run outside k8s."
+        sys.exit(errno.EPERM)
+
+
 class Snaptel(object):
     def get_running_tasks(self):
         out, err = self._run_command(["snaptel", "task", "list"])
@@ -136,7 +150,8 @@ class Snaptel(object):
 
     # Returns either output, or error message in a tuple
     def _run_command(self, args):
-        process = subprocess.Popen(args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            args, shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         # wait for the process to terminate
         out, err = process.communicate()
         errcode = process.returncode
@@ -144,6 +159,7 @@ class Snaptel(object):
             return out, err
         else:
             return out, None
+
 
 def download_urls(urls, dest_folder=None):
     files = []
@@ -159,6 +175,55 @@ def download_urls(urls, dest_folder=None):
         else:
             files.append(local_path)
     return files
+
+
+def replace_influxdb_endpoints(tasks_path):
+    influxsrv_host = os.environ['INFLUXSRV_SERVICE_HOST']
+    replace_keyword = 'influxsrv'
+    for task in tasks_path:
+        with open(task, "r") as f:
+            j = json.load(f)
+            for publish_obj in j.get("workflow", {}).get("collect", {}).get("publish", []):
+                if publish_obj['config']['host'] == replace_keyword:
+                    publish_obj['config']['host'] = influxsrv_host
+                    with open(task, 'w') as f:
+                        json.dump(j, f, indent=4)
+            for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
+                if 'publish' in process_obj:
+                    for publish_obj in process_obj['publish']:
+                        if publish_obj['config']['host'] == replace_keyword:
+                            publish_obj['config']['host'] = influxsrv_host
+                            with open(task, 'w') as f:
+                                json.dump(j, f, indent=4)
+
+
+def replace_goddd_endpoints(tasks_path):
+    goddd_pod_name = 'goddd'
+    goddd_namespace = 'default'
+    for task in tasks_path:
+        with open(task, "r") as f:
+            j = json.load(f)
+            if 'workflow' in j and 'collect'in j['workflow']:
+                if 'config' in j['workflow']['collect']:
+                    if '/hyperpilot/goddd' in j['workflow']['collect']['config']:
+                        endpoint = get_incluster_pod_endpoints(
+                            goddd_pod_name, goddd_namespace)
+                        config_obj = j['workflow']['collect']['config']
+                        config_obj['/hyperpilot/goddd']['endpoint'] = endpoint
+                        with open(task, 'w') as f:
+                            json.dump(j, f, indent=4)
+
+
+def replace_qos_data_store_endpoints(tasks_path):
+    for task in tasks_path:
+        with open(task, "r") as f:
+            j = json.load(f)
+            for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
+                if 'qos-data-store-url' in process_obj['config']:
+                    process_obj['config']['qos-data-store-url'] = "http://%s:%s" % (
+                        os.environ['QOS_DATA_STORE_SERVICE_HOST'], os.environ['QOS_DATA_STORE_SERVICE_PORT'])
+                    with open(task, 'w') as f:
+                        json.dump(j, f, indent=4)
 
 
 def main():
@@ -214,6 +279,11 @@ def main():
     if "configs" in j:
         configs_list = j["configs"]
         download_urls(configs_list, configs_directory)
+
+    # replace endpoints
+    replace_influxdb_endpoints(task_path_list)
+    replace_goddd_endpoints(task_path_list)
+    replace_qos_data_store_endpoints(task_path_list)
 
     for task in task_path_list:
         with open(task, "r") as f:
