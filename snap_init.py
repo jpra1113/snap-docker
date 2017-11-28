@@ -177,26 +177,6 @@ def download_urls(urls, dest_folder=None):
     return files
 
 
-def replace_influxdb_endpoints(tasks_path):
-    influxsrv_host = os.environ['INFLUXSRV_SERVICE_HOST']
-    replace_keyword = 'influxsrv'
-    for task in tasks_path:
-        with open(task, "r") as f:
-            j = json.load(f)
-            for publish_obj in j.get("workflow", {}).get("collect", {}).get("publish", []):
-                if publish_obj['config']['host'] == replace_keyword:
-                    publish_obj['config']['host'] = influxsrv_host
-                    with open(task, 'w') as f:
-                        json.dump(j, f, indent=4)
-            for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
-                if 'publish' in process_obj:
-                    for publish_obj in process_obj['publish']:
-                        if publish_obj['config']['host'] == replace_keyword:
-                            publish_obj['config']['host'] = influxsrv_host
-                            with open(task, 'w') as f:
-                                json.dump(j, f, indent=4)
-
-
 def replace_goddd_endpoints(tasks_path):
     goddd_pod_name = 'goddd'
     goddd_namespace = 'default'
@@ -212,18 +192,6 @@ def replace_goddd_endpoints(tasks_path):
                         config_obj['/hyperpilot/goddd']['endpoint'] = endpoint
                         with open(task, 'w') as f:
                             json.dump(j, f, indent=4)
-
-
-def replace_qos_data_store_endpoints(tasks_path):
-    for task in tasks_path:
-        with open(task, "r") as f:
-            j = json.load(f)
-            for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
-                if 'qos-data-store-url' in process_obj['config']:
-                    process_obj['config']['qos-data-store-url'] = "http://%s:%s" % (
-                        os.environ['QOS_DATA_STORE_SERVICE_HOST'], os.environ['QOS_DATA_STORE_SERVICE_PORT'])
-                    with open(task, 'w') as f:
-                        json.dump(j, f, indent=4)
 
 
 def main():
@@ -281,9 +249,7 @@ def main():
         download_urls(configs_list, configs_directory)
 
     # replace endpoints
-    replace_influxdb_endpoints(task_path_list)
     replace_goddd_endpoints(task_path_list)
-    replace_qos_data_store_endpoints(task_path_list)
 
     for task in task_path_list:
         with open(task, "r") as f:
