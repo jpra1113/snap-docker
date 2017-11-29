@@ -175,11 +175,12 @@ def download_urls(urls, dest_folder=None):
             files.append(local_path)
     return files
 
+
 class Accessor(object):
     def env(self, env_name):
-        os.environ[env_name]
+        return os.environ[env_name]
 
-    def deployment_id():
+    def deployment_id(self):
         """Call kubernetes api container to retrieve the deployment id"""
         try:
             config.load_incluster_config()
@@ -203,6 +204,7 @@ class Accessor(object):
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
+
 
 def main():
     # Initialize
