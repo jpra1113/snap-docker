@@ -5,7 +5,6 @@ import time
 import os
 import sys
 import urllib
-import urllib2
 import ssl
 import errno
 import subprocess
@@ -31,10 +30,10 @@ def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPas
         try:
             client.create_database(dbName)
         except influxdbExceptions.InfluxDBClientError as e:
-            print "[Warn] Failed to create db {}\nException: {}".format(dbName, e)
+            print("[Warn] Failed to create db {}\nException: {}".format(dbName, e))
     else:
-        print "List of existing DB"
-        print dbList
+        print("List of existing DB")
+        print(dbList)
 
 
 def create_publish_influxdb(publish_obj):
@@ -58,7 +57,7 @@ def get_deployment_id():
         if len(nodes.items) > 0:
             return nodes.items[0].metadata.labels.get("hyperpilot/deployment", "")
     except config.ConfigException:
-        print "Failed to load configuration. This container cannot run outside k8s."
+        print("Failed to load configuration. This container cannot run outside k8s.")
         sys.exit(errno.EPERM)
 
 
@@ -72,7 +71,7 @@ def get_service_endpoints(podName, namespaces='default'):
         print(cluster_ip)
         return "http://%s:%s" % (cluster_ip, port)
     except config.ConfigException:
-        print "Failed to load configuration. This container cannot run outside k8s."
+        print("Failed to load configuration. This container cannot run outside k8s.")
         sys.exit(errno.EPERM)
 
 
@@ -176,6 +175,34 @@ def download_urls(urls, dest_folder=None):
             files.append(local_path)
     return files
 
+class Accessor(object):
+    def env(self, env_name):
+        os.environ[env_name]
+
+    def deployment_id():
+        """Call kubernetes api container to retrieve the deployment id"""
+        try:
+            config.load_incluster_config()
+            nodes = client.CoreV1Api().list_node(watch=False)
+            if len(nodes.items) > 0:
+                return nodes.items[0].metadata.labels.get("hyperpilot/deployment", "")
+        except config.ConfigException:
+            print("Failed to load configuration. This container cannot run outside k8s.")
+            sys.exit(errno.EPERM)
+
+    def k8s_service(self, service_name, namespace='default'):
+        """Call kubernetes api service to get service cluster ip"""
+        try:
+            config.load_incluster_config()
+            pod_service = client.CoreV1Api().read_namespaced_service(service_name, namespace)
+            cluster_ip = pod_service.spec.cluster_ip
+            port = pod_service.spec.ports[0].port
+            url = "http://%s:%s" % (cluster_ip, port)
+            print("Replacing k8s service %s to url %s" % (service_name, url))
+            return url
+        except config.ConfigException:
+            print("Failed to load configuration. This container cannot run outside k8s.")
+            sys.exit(errno.EPERM)
 
 def main():
     # Initialize
@@ -239,17 +266,15 @@ def main():
                                 variable_start_string="<%=",
                                 variable_end_string="=>")
             with open(task, "w") as f:
-                f.write(template.render(**os.environ))
+                template_values = {
+                    'a': Accessor(),
+                }
+                f.write(template.render(template_values))
+
         # Load Data from JSON file
         # Configure Influxdb
         with open(task, "r") as f:
             j = json.load(f)
-            if '/hyperpilot/goddd' in j.get("workflow", {}).get("collect", {}).get("config", {}):
-                endpoint = get_service_endpoints("goddd", "default")
-                config_obj = j['workflow']['collect']['config']
-                config_obj['/hyperpilot/goddd']['endpoint'] = endpoint
-                with open(task, 'w') as f:
-                    json.dump(j, f, indent=4)
             if 'publish' in j.get("workflow", {}).get("collect", {}):
                 create_publish_influxdb(
                     j['workflow']['collect']['publish'])
