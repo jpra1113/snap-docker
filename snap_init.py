@@ -196,7 +196,7 @@ class Accessor(object):
         try:
             config.load_incluster_config()
             pod = client.CoreV1Api().read_namespaced_pod(pod_name, namespace)
-            return pod.spec.status.pod_ip
+            return pod.status.pod_ip
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
