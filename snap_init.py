@@ -24,7 +24,7 @@ ctx.verify_mode = ssl.CERT_NONE
 
 def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPassword='root', dbName='default'):
     """Initialize db"""
-    client = InfluxDBClient(dbHost, dbPort, dbName, dbUser, dbPassword)
+    client = InfluxDBClient(dbHost, dbPort, dbUser, dbPassword, dbName)
     dbList = list(map(lambda x: x['name'], client.get_list_database()))
     if dbName not in dbList:
         try:
@@ -56,20 +56,6 @@ def get_deployment_id():
         nodes = client.CoreV1Api().list_node(watch=False)
         if len(nodes.items) > 0:
             return nodes.items[0].metadata.labels.get("hyperpilot/deployment", "")
-    except config.ConfigException:
-        print("Failed to load configuration. This container cannot run outside k8s.")
-        sys.exit(errno.EPERM)
-
-
-def get_service_endpoints(podName, namespaces='default'):
-    """Call kubernetes api service to get service cluster ip"""
-    try:
-        config.load_incluster_config()
-        pod_service = client.CoreV1Api().read_namespaced_service(podName, namespaces)
-        cluster_ip = pod_service.spec.cluster_ip
-        port = pod_service.spec.ports[0].port
-        print(cluster_ip)
-        return "http://%s:%s" % (cluster_ip, port)
     except config.ConfigException:
         print("Failed to load configuration. This container cannot run outside k8s.")
         sys.exit(errno.EPERM)
