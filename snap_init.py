@@ -61,20 +61,6 @@ def get_deployment_id():
         sys.exit(errno.EPERM)
 
 
-def get_service_endpoints(podName, namespaces='default'):
-    """Call kubernetes api service to get service cluster ip"""
-    try:
-        config.load_incluster_config()
-        pod_service = client.CoreV1Api().read_namespaced_service(podName, namespaces)
-        cluster_ip = pod_service.spec.cluster_ip
-        port = pod_service.spec.ports[0].port
-        print(cluster_ip)
-        return "http://%s:%s" % (cluster_ip, port)
-    except config.ConfigException:
-        print("Failed to load configuration. This container cannot run outside k8s.")
-        sys.exit(errno.EPERM)
-
-
 class Snaptel(object):
     def get_running_tasks(self):
         out, err = self._run_command(["snaptel", "task", "list"])
@@ -201,6 +187,16 @@ class Accessor(object):
             url = "http://%s:%s" % (cluster_ip, port)
             print("Replacing k8s service %s to url %s" % (service_name, url))
             return url
+        except config.ConfigException:
+            print("Failed to load configuration. This container cannot run outside k8s.")
+            sys.exit(errno.EPERM)
+
+    def pod_ip(self, pod_name, namespace='default'):
+        """Call kubernetes api service to get service cluster ip"""
+        try:
+            config.load_incluster_config()
+            pod = client.CoreV1Api().read_namespaced_pod(pod_name, namespace)
+            return pod.spec.status.pod_ip
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
