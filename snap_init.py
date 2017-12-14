@@ -24,7 +24,7 @@ ctx.verify_mode = ssl.CERT_NONE
 
 def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPassword='root', dbName='default'):
     """Initialize db"""
-    client = InfluxDBClient(dbHost, dbPort, dbName, dbUser, dbPassword)
+    client = InfluxDBClient(dbHost, dbPort, dbUser, dbPassword, dbName)
     dbList = list(map(lambda x: x['name'], client.get_list_database()))
     if dbName not in dbList:
         try:
