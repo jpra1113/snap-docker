@@ -24,7 +24,7 @@ ctx.verify_mode = ssl.CERT_NONE
 
 def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPassword='root', dbName='default'):
     """Initialize db"""
-    client = InfluxDBClient(dbHost, dbPort, dbName, dbUser, dbPassword)
+    client = InfluxDBClient(dbHost, dbPort, dbUser, dbPassword, dbName)
     dbList = list(map(lambda x: x['name'], client.get_list_database()))
     if dbName not in dbList:
         try:
@@ -191,13 +191,27 @@ class Accessor(object):
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
 
-    def pod_ip(self, pod_name, namespace='default'):
-        """Call kubernetes api service to get service cluster ip"""
+    def pod_ip_label_selector(self, label_selector, namespace='default'):
+        """Call kubernetes api service to get pod ip"""
         try:
             config.load_incluster_config()
+            result = client.CoreV1Api().list_namespaced_pod(namespace, label_selector=label_selector)
+            pod_name = result.items[0].metadata.name
+            print("pod_name %s" % pod_name)
             pod = client.CoreV1Api().read_namespaced_pod(pod_name, namespace)
-            print("pod_name:%s ip is %s" % (pod_name, pod.status.pod_ip))
             return pod.status.pod_ip
+        except config.ConfigException:
+            print("Failed to load configuration. This container cannot run outside k8s.")
+            sys.exit(errno.EPERM)
+
+    def pod_ip_env_name(self, pod_env_name, namespace='default'):
+        """Call kubernetes api service to get pod ip"""
+        try:
+            config.load_incluster_config()
+            print("pod_env_name %s" % pod_env_name)
+            label_selector = "app=%s" % os.environ[pod_env_name]
+            print("label_selector %s" % label_selector)
+            return self.pod_ip_label_selector(label_selector)
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
