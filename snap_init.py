@@ -207,9 +207,7 @@ class Accessor(object):
         """Call kubernetes api service to get pod ip"""
         try:
             config.load_incluster_config()
-            pod_name = os.environ[pod_env_name]
-            pod = client.CoreV1Api().read_namespaced_pod(pod_name, namespace)
-            return pod.status.pod_ip
+            return self.pod_ip_label_selector("app=%s" % os.environ[pod_env_name])
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
