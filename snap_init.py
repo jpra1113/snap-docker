@@ -22,31 +22,31 @@ ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
 
 
-def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPassword='root', dbName='default'):
-    """Initialize db"""
-    client = InfluxDBClient(dbHost, dbPort, dbUser, dbPassword, dbName)
-    dbList = list(map(lambda x: x['name'], client.get_list_database()))
-    if dbName not in dbList:
-        try:
-            client.create_database(dbName)
-        except influxdbExceptions.InfluxDBClientError as e:
-            print("[Warn] Failed to create db {}\nException: {}".format(dbName, e))
-    else:
-        print("List of existing DB")
-        print(dbList)
+# def createInfluxdbDataBase(dbHost='localhost', dbPort=8086, dbUser='root', dbPassword='root', dbName='default'):
+#     """Initialize db"""
+#     client = InfluxDBClient(dbHost, dbPort, dbUser, dbPassword, dbName)
+#     dbList = list(map(lambda x: x['name'], client.get_list_database()))
+#     if dbName not in dbList:
+#         try:
+#             client.create_database(dbName)
+#         except influxdbExceptions.InfluxDBClientError as e:
+#             print("[Warn] Failed to create db {}\nException: {}".format(dbName, e))
+#     else:
+#         print("List of existing DB")
+#         print(dbList)
 
 
-def create_publish_influxdb(publish_obj):
-    for i in publish_obj:
-        if i['plugin_name'] != 'influxdb':
-            continue
-        configObj = i['config']
-        # NOTE Ignore https case
-        createInfluxdbDataBase(configObj['host'],
-                               configObj['port'],
-                               configObj['user'],
-                               configObj['password'],
-                               configObj['database'])
+# def create_publish_influxdb(publish_obj):
+#     for i in publish_obj:
+#         if i['plugin_name'] != 'influxdb':
+#             continue
+#         configObj = i['config']
+#         # NOTE Ignore https case
+#         createInfluxdbDataBase(configObj['host'],
+#                                configObj['port'],
+#                                configObj['user'],
+#                                configObj['password'],
+#                                configObj['database'])
 
 
 def get_deployment_id():
@@ -194,12 +194,14 @@ class Accessor(object):
     def pod_ip_label_selector(self, label_selector, namespace='default'):
         """Call kubernetes api service to get pod ip"""
         try:
+            print("pod_ip_label_selector init label_selector: %s, namespace: %s" % (label_selector, namespace))
             config.load_incluster_config()
             result = client.CoreV1Api().list_namespaced_pod(namespace, label_selector=label_selector)
             pod_name = result.items[0].metadata.name
-            print("pod_name %s" % pod_name)
             pod = client.CoreV1Api().read_namespaced_pod(pod_name, namespace)
-            return pod.status.pod_ip
+            pod_ip = pod.status.pod_ip
+            print("pod_name: %s, label_selector: %s, namespace: %s, pod_ip: %s" % (pod_name, label_selector, namespace, pod_ip))
+            return pod_ip
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
             sys.exit(errno.EPERM)
@@ -208,9 +210,7 @@ class Accessor(object):
         """Call kubernetes api service to get pod ip"""
         try:
             config.load_incluster_config()
-            print("pod_env_name %s" % pod_env_name)
             label_selector = "app=%s" % os.environ[pod_env_name]
-            print("label_selector %s" % label_selector)
             return self.pod_ip_label_selector(label_selector)
         except config.ConfigException:
             print("Failed to load configuration. This container cannot run outside k8s.")
@@ -286,14 +286,14 @@ def main():
 
         # Load Data from JSON file
         # Configure Influxdb
-        with open(task, "r") as f:
-            j = json.load(f)
-            if 'publish' in j.get("workflow", {}).get("collect", {}):
-                create_publish_influxdb(
-                    j['workflow']['collect']['publish'])
-            for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
-                if 'publish' in process_obj:
-                    create_publish_influxdb(process_obj['publish'])
+        # with open(task, "r") as f:
+        #     j = json.load(f)
+        #     if 'publish' in j.get("workflow", {}).get("collect", {}):
+        #         create_publish_influxdb(
+        #             j['workflow']['collect']['publish'])
+        #     for process_obj in j.get("workflow", {}).get("collect", {}).get("process", []):
+        #         if 'publish' in process_obj:
+        #             create_publish_influxdb(process_obj['publish'])
 
     print("Snap plugins and tasks prepared")
 
